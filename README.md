@@ -7,14 +7,17 @@ Vypracoval Martin Sebera, srpen 2026
 **Uspořádání v paměti**: vrchol pyramidy má index [rows-1, 0]; Základna pyramidy má tyto indexy: [0, 0...rows-1]
 
 ### Algoritmus
-Cílem je najít maximální součet v pyramidě, na každém políčku je jedno číslo, začíná se na špičce (tedy dole) a postupuje nahoru.
+Cílem je najít maximální součet v pyramidě, na každém políčku je jedno číslo, začíná se na špičce (řádek s indexem rows-1) a postupuje nahoru (k řádku 0).
 Moje implementace je zcela obecná a funguje tedy i pro záporná čísla.
 
 Součástí zadání není najít kompletní max cestu, pouze najít maximální součet, to je ta jednodušší varianta.
 
-1. Není třeba zkoušet konkrétní cesty, stačí sestupně procházet úrovně od špičky po nejširší (_rows-1...0) a pamatovat si pro každé políčko zatím nejvyšší možný součet.
+1. Není třeba zkoušet konkrétní cesty, stačí sestupně procházet řádky od špičky po nejširší (_rows-1 ... 0) a pamatovat si pro každé políčko zatím nejvyšší možný součet.
     - Budeme tedy potřebovat dvě pole (stačí na stacku - lepší pro GC) o délce _rows. Jedno pro procházení tohoto řádku, druhé uchovává maxima řádku pod ním.
-2. Když dojdeme na nejširší řádek 0, spočítáme poslední maximální součty.
+    - Každé políčko má pod sebou jedno nebo dvě sousední políčka. Stačí tedy vybírat maximálně ze dvou variant.
+    - Každé políčko navštívíme pouze jednou. Složitost algoritmu je tak **O(n)**, kde n je **počet políček pyramidy**
+    - **POZOR!** Nelze se spoléhat na lokální maxima, protože cesta, která se v průbehu zdá jako nevýhodná, může být nakonec ta optimální. Je tedy potřeba vyhodnotit každé políčko pyramidy.
+2. Až dojdeme na nejširší řádek 0, spočítáme poslední maximální součty.
 3. V součtech nalezneme maximum a to vrátíme
 
 ### Výhrady k použitému 2D poli int[,]
