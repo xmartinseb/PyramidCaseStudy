@@ -1,4 +1,4 @@
-﻿using System.Numerics.Tensors;
+﻿using System.Buffers;
 
 namespace Pyramid;
 
@@ -11,13 +11,11 @@ public sealed class PyramidSolver : IPyramidSolver
         if (pyramid.Rows == 1)
             return pyramid[0, 0]; // Trivialni, neni potreba zadny vypocet
 
-        // Note: pro validaci pyramidy stačí prostá alokace na stacku, není potřeba plnohodnotné pole na heap
-        // Note: uznávám, že v tomto případě Span oproti běžnému array nic moc neušetří, nealokujeme totiž v hot loop. Ale je fajn ukázat, že v .NET 10 s tím lze skvěle pracovat.
-        Span<long> rowUnderTopSums = stackalloc long[pyramid.Rows];
-        
+        var rowUnderTopSums = new long[pyramid.Rows];
+        var thisRowTopSums = new long[pyramid.Rows];
+
         rowUnderTopSums[0] = pyramid[pyramid.Rows - 1, 0]; // Vrchol pyramidy zapíšu mimo iteraci
 
-        Span<long> thisRowTopSums = stackalloc long[pyramid.Rows];
         for (int row = pyramid.Rows - 2; row >= 0; --row)
         {
             int colsInThisRow = pyramid.ColsInRow(row);
@@ -37,20 +35,13 @@ public sealed class PyramidSolver : IPyramidSolver
                     (null, not null) => sumRight.Value,
                     (not null, null) => sumLeft.Value,
                     (not null, not null) => Math.Max(sumLeft.Value, sumRight.Value),
-                    (null, null) => throw new Exception("Unexpected error in pyramid solver") // unreachable
+                    (null, null) => throw new Exception("Unexpected error in pyramid solver") // prakticky unreachable
                 };
             }
 
             thisRowTopSums[..colsInThisRow].CopyTo(rowUnderTopSums);
         }
 
-        // Note: rychlé SIMD nalezení maxima bez jakýchkoliv alokací
-        return TensorPrimitives.Max(rowUnderTopSums);
-    }
-
-    static void ZeroMemory(Span<long> rowTopSums)
-    {
-        for (int i = 0; i < rowTopSums.Length; ++i)
-            rowTopSums[i] = 0;
+        return rowUnderTopSums.Max();
     }
 }
