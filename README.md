@@ -2,6 +2,20 @@
 Vypracoval Martin Sebera, srpen 2026
 
 ## 1. SQL dotaz
+Jde o JOIN mezi dvěma tabulkami. Logika je stejná napříč v MSSQL, Postgres i v jakékoliv jiné variantě.
+
+Takto by to mělo vypadat v MSSQL
+
+~~~~sql
+SELECT ZAP.kniha FROM zakaznik as ZAK
+INNER JOIN zapujcky as ZAP ON ZAK.id = ZAP.id_zakaznika
+WHERE ZAK.jmeno = 'Jaroslav Novák'
+   AND ZAP.datum_zapujceni >= '2026-01-01' AND ZAP.datum_zapujceni < '2026-02-01'
+   AND ZAP.datum_vraceni IS NULL
+~~~~
+
+Teoreticky by se dal typ DATE rozkládat na jednotlivé části: year, month, apod. Nicméně tahle varianta je lepší kvůli indexaci 
+(ač v zadání není indexace nad datumy, v živé databázi by mohla být)
 
 ## 2. Pyramida
 **Uspořádání v paměti**: vrchol pyramidy má index [rows-1, 0]; Základna pyramidy má tyto indexy: [0, 0...rows-1]
@@ -40,7 +54,7 @@ Nevýhodou je složitější implementace a problém s případným alokováním
 ### Úpravy kódu
 V rámci poskytnuté šablony projektu jsem provedl několik změn:
 
-1. Místo .NET 8 jsem použil .NET 10 (omlouvám se, ale verzi 8 u sebe nemám nainstalovanou).
+1. Místo .NET 8 jsem použil .NET 10 (omlouvám se, ale verzi 8 u sebe nemám nainstalovanou. Kód by měl být ale kompatibilní s verzí 8).
 2. **Immutability:** Kód třídy Pyramid jsem zkrátil a v indexeru povolil pouze getter
     - Není totiž potřeba, aby se pyramida po vytvoření měnila. 
     - Pokud to lze, upřednostňuju read-only data, např. kvůli bezpečnému sdílení ve vícevláknovém prostředí, navíc nechtěné změny mohou způsobit bug.

@@ -11,8 +11,8 @@ public sealed class PyramidSolver : IPyramidSolver
         if (pyramid.Rows == 1)
             return pyramid[0, 0]; // Trivialni, neni potreba zadny vypocet
 
-        var rowUnderTopSums = new long[pyramid.Rows];
-        var thisRowTopSums = new long[pyramid.Rows];
+        var thisRowTopSums = new long[pyramid.Rows]; // Slouží k iteraci aktuálního řádku, ukládá nová maxima
+        var rowUnderTopSums = new long[pyramid.Rows]; // Slouží k uchování maxim řádku, který je pod aktuálním řádkem
 
         rowUnderTopSums[0] = pyramid[pyramid.Rows - 1, 0]; // Vrchol pyramidy zapíšu mimo iteraci
 
