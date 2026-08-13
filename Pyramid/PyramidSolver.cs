@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics.Tensors;
+﻿using System.Numerics.Tensors;
 
 namespace Pyramid;
 
@@ -13,15 +12,14 @@ public sealed class PyramidSolver : IPyramidSolver
             return pyramid[0, 0]; // Trivialni, neni potreba zadny vypocet
 
         // Note: pro validaci pyramidy stačí prostá alokace na stacku, není potřeba plnohodnotné pole na heap
-        Span<long> rowUnderTopSums = stackalloc long[pyramid.Rows]; // počet řádků = max počet sloupců
-
+        // Note: uznávám, že v tomto případě Span oproti běžnému array nic moc neušetří, nealokujeme totiž v hot loop. Ale je fajn ukázat, že v .NET 10 s tím lze skvěle pracovat.
+        Span<long> rowUnderTopSums = stackalloc long[pyramid.Rows];
+        
         rowUnderTopSums[0] = pyramid[pyramid.Rows - 1, 0]; // Vrchol pyramidy zapíšu mimo iteraci
 
         Span<long> thisRowTopSums = stackalloc long[pyramid.Rows];
         for (int row = pyramid.Rows - 2; row >= 0; --row)
         {
-            rowUnderTopSums.CopyTo(thisRowTopSums); // TODO: zrusit zbytecne copy cells
-
             int colsInThisRow = pyramid.ColsInRow(row);
             for (int col = 0; col < colsInThisRow; ++col)
             {
@@ -43,7 +41,7 @@ public sealed class PyramidSolver : IPyramidSolver
                 };
             }
 
-            thisRowTopSums.CopyTo(rowUnderTopSums);
+            thisRowTopSums[..colsInThisRow].CopyTo(rowUnderTopSums);
         }
 
         // Note: rychlé SIMD nalezení maxima bez jakýchkoliv alokací

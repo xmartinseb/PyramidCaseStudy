@@ -26,6 +26,17 @@ public class PyramidSolverTests
             {8, 0 }
         }, 10);
 
+    /// <summary>
+    /// Moje implementace funguje zcela obecně, tedy i pro záporná čísla
+    /// </summary>
+    [Test]
+    public void NegativePyramidLevel2Test()
+        => TestPyramidInternal(new int[,]
+        {
+            {-2, -1 },
+            {-8, 0 }
+        }, -9);
+
     [Test]
     public void TrivialPyramidTest()
        => TestPyramidInternal(new int[,]
