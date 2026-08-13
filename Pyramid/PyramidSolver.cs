@@ -19,10 +19,11 @@ public sealed class PyramidSolver : IPyramidSolver
         for (int row = pyramid.Rows - 2; row >= 0; --row)
         {
             int colsInThisRow = pyramid.ColsInRow(row);
+            var colsInRowBelow = pyramid.ColsInRow(row + 1);
+
             for (int col = 0; col < colsInThisRow; ++col)
             {
                 var cellValue = pyramid[row, col];
-                var colsInRowBelow = pyramid.ColsInRow(row + 1);
                 // Zkouší se levá a pravá varianta (nebo jen ta, která je zrovna k dispozici)
                 long? sumLeft = null, sumRight = null;
                 if (col - 1 >= 0)
