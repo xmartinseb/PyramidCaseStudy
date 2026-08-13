@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Pyramid.Tests/Pyramid.Tests.csproj" />
+  <Project Path="Pyramid/Pyramid.csproj" />
+</Solution>
