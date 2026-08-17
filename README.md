@@ -29,9 +29,9 @@ Moje implementace se snaží být obecně správná:
 
 Součástí zadání není najít kompletní max cestu, pouze najít maximální součet, to je ta jednodušší varianta.
 
-1. Není tak třeba nahlížet na konkrétní cesty, stačí sestupně procházet řádky od špičky po nejširší (_rows-1 ... 0) a pamatovat si pro každé políčko zatím nejvyšší možný součet.
-    - Budeme tedy potřebovat dvě pole. Jedno pro iteraci aktuálního řádku, druhé uchovává maxima řádku pod ním.
-    - Každé políčko má pod sebou jedno nebo dvě sousední políčka. Stačí tedy vybírat maximálně ze dvou variant.
+1. Není tak třeba nahlížet na konkrétní cesty, stačí procházet řádky od špičky po nejširší (_rows-1 ... 0) a pamatovat si pro každé políčko nejvyšší možný součet.
+    - Budeme tedy potřebovat dvě arrays. Jedno pro iteraci aktuálního řádku, druhé uchovává nalezená maxima řádku pod ním.
+    - Každé políčko má pod sebou jedno nebo dvě sousední políčka. Při iteraci stačí pro každé políčko vybírat maximum nejvýše ze dvou variant.
     - Každé políčko navštívíme pouze jednou. Složitost algoritmu je tak **O(n)**, kde n je **počet políček pyramidy**
     - **POZOR!** Nelze se spoléhat na lokální maxima, protože cesta, která se v průběhu zdá jako nevýhodná, může být nakonec ta optimální. Je tedy potřeba vyhodnotit každé políčko pyramidy.
 2. Až dojdeme na nejširší řádek 0, spočítáme poslední maximální součty.
