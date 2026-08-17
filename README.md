@@ -85,6 +85,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 - V tomto příkladu využit jako provozní vrstva pro webovou aplikaci a všechna API
 - Pokud nějaká služba vypadne, kubernetes nastartuje novou instanci
 - Pokud je nějaká služba přetížená, kubernetes ji zreplikuje - tím **roste throughput** systému
+- Tento přístup se hodí zejména pokud bude potřeba nějaké API nebo **mikroservisu horizontálně škálovat**
 
 #### SQL
 - Zvyšuje dostupnost (automatický failover při výpadku primárního node) a balancuje zátěž dotazů SELECT mezi dostupné repliky. Zápisové dotazy směruje na primární node.
@@ -95,6 +96,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 - Redis je jednoduché a rychlé RAM úložiště typu key-value, dotazy do něj jsou mnohem rychlejší než SQL.
 - Pokud se v rámci obsluhy http requestu použije Redis místo SQL, **klesá latence** 
 - Do redis cache se nejlépe hodí cool data (málokdy se mění), či snapshoty nějakých aktuálních dat
+  - Kdyby nastal kompletní výpadek SQL, bude alespoň část dat k dispozici (odstranění **single point of failure**). Někdy je lepší zobrazit naposledy načtený snapshot dat s poznámkou o výpadku, než zahodit každý request.
 
 #### Messaging systémy
 - V tomto příkladu nevyužity
