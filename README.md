@@ -77,9 +77,18 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 ### Nginx
 - Reverzní proxy, která přesměrovává příchozí komunikaci na konkrétní endpointy (veřejná webová aplikace či různé API)
 - Stačí https komunikace, v případě provozování SignalR je nutné povolit dlouhodobé websockety, aby SignalR nevyužil fallbackové implementace, jako např. polling.
+- Cachuje statický obsah webových aplikací
 
 ### LAN
 - Důvěryhodná vnitřní síť, která obsahuje veškerou firemní infrastrukturu
+
+#### Desktop aplikace
+- Běží přímo v LAN, proto komunikuje s API přímo
+- Nemá přímý přístup k SQL kvůli bezpečnosti a konzistenci přístupu (API poskytuje stejné validace vstupu i přidanou logiku jak pro desktop, tak i pro ostatní konzumenty)
+
+#### Webová aplikace a API
+- Hostováno přímo v LAN, s vnějším světem je spojeno přes reverzní proxy a firewally, které propouští pouze bezpečnou komunikaci (zvenku https, lokálně někdy i http)
+- Díky umístění webového serveru (potažmo kubernetes) do LAN vzniká přímý přístup k SQL, Redis apod., což je v pořádku, jelikož se již nacházíme v důvěryhodném vnitřním prostředí
 
 #### Kubernetes
 - V tomto příkladu využit jako provozní vrstva pro webovou aplikaci a všechna API
@@ -89,6 +98,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 
 #### SQL
 - Zvyšuje dostupnost (automatický failover při výpadku primárního node) a balancuje zátěž dotazů SELECT mezi dostupné repliky. Zápisové dotazy směruje na primární node.
+- Nepoužívá kubernetes, jelikož se z principu příliš neškáluje a není stateless
 
 #### Redis
 - Slouží jako **distribuovaná cache**, která odlehčuje SQL serveru
@@ -119,3 +129,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
    - Brání to vzniku **bottlenecku** v identity provideru
    - Lokální ověření tokenu je schopné ověřit vše: identitu uživatele, jeho role, práva apod.
    - Při výpadku identity provideru se nemůže přihlásit žádný další uživatel. Již přihlášení uživatelé zůstanou funkční až do **expirace tokenu**
+
+#### Observability
+- V rámci LAN bych použil nějaký centrální systém pro strukturované **logování a metriky**, ideálně napojit na **Grafana**
+- V distribuovaném systému bych pro logování použil také **Korelační ID**, které dává do souvislosti více částí komunikace mezi komponentami 
