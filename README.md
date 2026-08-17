@@ -76,7 +76,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 
 ### Nginx
 - Reverzní proxy, která přesměrovává příchozí komunikaci na konkrétní endpointy (veřejná webová aplikace či různé API)
-- Stačí ji http komunikace, v případě provozování SignalR je nutné povolit dlouhodobé websockety, aby SignalR nevyužil fallbackové implementace, jako např. polling.
+- Stačí https komunikace, v případě provozování SignalR je nutné povolit dlouhodobé websockety, aby SignalR nevyužil fallbackové implementace, jako např. polling.
 
 ### LAN
 - Důvěryhodná vnitřní síť, která obsahuje veškerou firemní infrastrukturu
@@ -87,7 +87,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 - Pokud je nějaká služba přetížená, kubernetes ji zreplikuje - tím **roste throughput** systému
 
 #### SQL
-- V příkladu použit pgPool, který zvyšuje **dostupnost** (přepíná při výpadku jednoho z sql serverů) a balancuje zátěž mezi replikami
+- Zvyšuje dostupnost (automatický failover při výpadku primárního node) a balancuje zátěž dotazů SELECT mezi dostupné repliky. Zápisové dotazy směruje na primární node.
 
 #### Redis
 - Slouží jako **distribuovaná cache**, která odlehčuje SQL serveru
@@ -99,7 +99,7 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
 #### Messaging systémy
 - V tomto příkladu nevyužity
 - Technicky silný základ pro asynchronní komunikaci (producenti posílají zprávy, konzumenti je odebírají)
-- **Decoupling komponent**: při produkování zpráv není ani potřeba, aby byl konzument zrovna v provozu. To je největší rozdíl oproti např. přímé HTTP komunikaci, která může být pro komponenty systému příliš svazující a při neošetřeném používání i ke **kaskádovým selháním**
+- **Decoupling komponent**: při produkování zpráv není ani potřeba, aby byl konzument zrovna v provozu. To je největší rozdíl oproti např. přímé HTTP komunikaci, která může být pro komponenty systému příliš svazující a při neošetřeném používání může vést i ke **kaskádovým selháním**
 
 #### AD
 - uchovává uživatele, jejich skupiny, role a práva. Je dobře integrovaná v samotném ekosystému Windows
@@ -111,10 +111,9 @@ Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a 
   - Vydává tokeny pro OAuth2
 
 #### OAuth2
-- Moderní způsob autorizace
-- Při přihlašování uživatele webové aplikace nebo API se kontaktuje identity provider, který vydává JWT tokeny
-- Největší výhoda: webová služba nemusí při každém requestu ověřovat uživatelův token přes identity provider, ale ověří si ho lokálně díky tomu, že zná veřejné klíče identity provideru
-   - To **snižuje latenci**, protože není nutná další mezikomunikace
+- Při přihlašování uživatele se kontaktuje identity provider, který vydá nový podepsaný JWT token.
+- Výhoda: webová služba nemusí při každém requestu ověřovat uživatelův token přes identity provider, ale ověří si ho lokálně díky tomu, že zná veřejné klíče identity provideru
+   - To **snižuje latenci**, protože není nutná další mezikomunikace při každém requestu
    - Brání to vzniku **bottlenecku** v identity provideru
-   - Lokální ověření dešifrováním tokenu je schopné ověřit vše: identitu uživatele, jeho role, práva apod.
+   - Lokální ověření tokenu je schopné ověřit vše: identitu uživatele, jeho role, práva apod.
    - Při výpadku identity provideru se nemůže přihlásit žádný další uživatel. Již přihlášení uživatelé zůstanou funkční až do **expirace tokenu**
