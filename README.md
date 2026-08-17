@@ -62,6 +62,59 @@ V rámci poskytnuté šablony projektu jsem provedl několik změn:
 4. **Validace:** Přidal jsem validaci parametrů apod.
 
 ## 3. Komponentní diagram
-(obrázek viz. root v gitu)
+(obrázek viz. **Diagram_sipky.png** v rootu gitu)
 
 Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a zároveň veřejně dostupnou webovou aplikaci. Účelem je zamyslet se nad jednotlivými komponentami a navrhnout kompletní řešení.
+
+### Základní rozdělení
+- Internet = vnější svět (uživatelé, konzumenti API, cloud)
+- Vnější firewall, který odfiltruje vnější komunikaci, zachová pouze povolená pravidla, např. komunikaci http(s)
+- Zóna DMZ jakožto přechod z veřejného internetu do LAN
+- Vnitřní firewall, který slouží jako poslední přísná bariéra při přijímání komunikace zvenčí. Zároveň filtruje komunikaci z LAN do veřejné sítě.
+   - Kdyby došlo k napadení DMZ či nginx, vnitřní firewall ochrání samotnou LAN
+- Samotná LAN, kde sídlí všechna firemní infrastruktura
+
+### Nginx
+- Reverzní proxy, která přesměrovává příchozí komunikaci na konkrétní endpointy (veřejná webová aplikace či různé API)
+- Stačí ji http komunikace, v případě provozování SignalR je nutné povolit dlouhodobé websockety, aby SignalR nevyužil fallbackové implementace, jako např. polling.
+
+### LAN
+- Důvěryhodná vnitřní síť, která obsahuje veškerou firemní infrastrukturu
+
+#### Kubernetes
+- V tomto příkladu využit jako provozní vrstva pro webovou aplikaci a všechna API
+- Pokud nějaká služba vypadne, kubernetes nastartuje novou instanci
+- Pokud je nějaká služba přetížená, kubernetes ji zreplikuje - tím **roste throughput** systému
+
+#### SQL
+- V příkladu použit pgPool, který zvyšuje **dostupnost** (přepíná při výpadku jednoho z sql serverů) a balancuje zátěž mezi replikami
+
+#### Redis
+- Slouží jako **distribuovaná cache**, která odlehčuje SQL serveru
+  - V distribuovaných systémech je právě SQL často bottleneckem, jelikož se špatně horizontálně škáluje. Při mnoha paralelních dotazech dochází k četným lockům dat a **deadlockům**
+- Redis je jednoduché a rychlé RAM úložiště typu key-value, dotazy do něj jsou mnohem rychlejší než SQL.
+- Pokud se v rámci obsluhy http requestu použije Redis místo SQL, **klesá latence** 
+- Do redis cache se nejlépe hodí cool data (málokdy se mění), či snapshoty nějakých aktuálních dat
+
+#### Messaging systémy
+- V tomto příkladu nevyužity
+- Technicky silný základ pro asynchronní komunikaci (producenti posílají zprávy, konzumenti je odebírají)
+- **Decoupling komponent**: při produkování zpráv není ani potřeba, aby byl konzument zrovna v provozu. To je největší rozdíl oproti např. přímé HTTP komunikaci, která může být pro komponenty systému příliš svazující a při neošetřeném používání i ke **kaskádovým selháním**
+
+#### AD
+- uchovává uživatele, jejich skupiny, role a práva. Je dobře integrovaná v samotném ekosystému Windows
+- Desktopové aplikace s AD nemusí komunikovat přímo, stačí se spolehnout na Windows - provádí ověření a podporuje SSO (tedy není nutné se po přihlášení k PC znovu přihlašovat do dalších služeb) 
+
+#### Identity provider
+- Slouží webovým aplikacím a API
+  - Pomocí LDAPS ověřuje nová přihlášení oproti AD
+  - Vydává tokeny pro OAuth2
+
+#### OAuth2
+- Moderní způsob autorizace
+- Při přihlašování uživatele webové aplikace nebo API se kontaktuje identity provider, který vydává JWT tokeny
+- Největší výhoda: webová služba nemusí při každém requestu ověřovat uživatelův token přes identity provider, ale ověří si ho lokálně díky tomu, že zná veřejné klíče identity provideru
+   - To **snižuje latenci**, protože není nutná další mezikomunikace
+   - Brání to vzniku **bottlenecku** v identity provideru
+   - Lokální ověření dešifrováním tokenu je schopné ověřit vše: identitu uživatele, jeho role, práva apod.
+   - Při výpadku identity provideru se nemůže přihlásit žádný další uživatel. Již přihlášení uživatelé zůstanou funkční až do **expirace tokenu**
