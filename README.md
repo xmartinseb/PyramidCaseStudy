@@ -62,3 +62,6 @@ V rámci poskytnuté šablony projektu jsem provedl několik změn:
 4. **Validace:** Přidal jsem validaci parametrů apod.
 
 ## 3. Komponentní diagram
+(obrázek viz. root v gitu)
+
+Základ úlohy je, že nějaká firma provozuje interní desktopovou aplikaci a zároveň veřejně dostupnou webovou aplikaci. Účelem je zamyslet se nad jednotlivými komponentami a navrhnout kompletní řešení.
